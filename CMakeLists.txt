@@ -38,6 +38,19 @@ else()
     else()
         add_executable(J-1
             ${PROJECT_SOURCES}
+            JGraphicsView.h JGraphicsView.cpp
+            JGraphicsScene.h JGraphicsScene.cpp
+            JTaskGallary.h JTaskGallary.cpp
+
+
+            JTask.h JTask.cpp
+            macros.h
+            graphics_items.h graphics_items.cpp
+            JTaskIoDesc.h JTaskIoDesc.cpp
+            enums.h
+            JObject.h JObject.cpp
+
+
         )
     endif()
 endif()
