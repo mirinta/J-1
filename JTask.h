@@ -10,21 +10,62 @@ class JTask : public QObject
     Q_OBJECT
 
 public:
-    explicit JTask(QObject* parent = nullptr) : QObject(parent) {}
+    explicit JTask(QObject* parent = nullptr);
 
-    virtual QString desc()
+    virtual QString desc() = 0;
+    virtual JTaskIoDescVec inputDescVec() = 0;
+    virtual JTaskIoDescVec outputDescVec() = 0;
+
+    virtual std::vector<QVariant> run(const std::vector<QVariant>& inputs) { return {}; };
+};
+
+class Task1 : public JTask
+{
+    Q_OBJECT
+
+public:
+    using JTask::JTask;
+
+    QString desc() override { return QStringLiteral("This is Task1."); }
+    JTaskIoDescVec inputDescVec() override { return {}; }
+    JTaskIoDescVec outputDescVec() override
     {
-        static int count = 0;
-        return QStringLiteral("This is task(%1).").arg(count++);
+        return {JTaskIoDesc{"Custom type 1"}, JTaskIoDesc{"Custom type 2"}};
     }
-    virtual JTaskIoDescVec inputDescVec()
+};
+
+class Task2 : public JTask
+{
+    Q_OBJECT
+
+public:
+    using JTask::JTask;
+
+    QString desc() override { return QStringLiteral("This is Task2."); }
+    JTaskIoDescVec inputDescVec() override
     {
-        return {JTaskIoDesc{"int"}, JTaskIoDesc{"QString"}, JTaskIoDesc{"Custom type 1"}};
+        return {JTaskIoDesc{"Custom type 1"}, JTaskIoDesc{"Custom type 2"}};
     }
-    virtual JTaskIoDescVec outputDescVec()
+    JTaskIoDescVec outputDescVec() override
     {
         return {JTaskIoDesc{"Custom type 2"}, JTaskIoDesc{"Custom type 3"}};
     }
+};
 
-    virtual std::vector<QVariant> run(const std::vector<QVariant>& inputs) { return {}; }
+class Task3 : public JTask
+{
+    Q_OBJECT
+
+public:
+    using JTask::JTask;
+
+    QString desc() override { return QStringLiteral("This is Task3."); }
+    JTaskIoDescVec inputDescVec() override
+    {
+        return {JTaskIoDesc{"Custom type 2"}, JTaskIoDesc{"Custom type 3"}};
+    }
+    JTaskIoDescVec outputDescVec() override
+    {
+        return {JTaskIoDesc{"Custom type 1"}, JTaskIoDesc{"Custom type 2"}};
+    }
 };

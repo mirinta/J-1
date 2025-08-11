@@ -16,6 +16,7 @@ void createTextAndResize(const QString& text, QGraphicsRectItem* const mainBody)
         return;
 
     auto* const textItem = new QGraphicsSimpleTextItem(text, mainBody);
+    textItem->setAcceptedMouseButtons(Qt::NoButton);
     textItem->setFont(QFont{QStringLiteral("Arial"), 10, QFont::Bold});
     const QRectF textRect = textItem->boundingRect();
     QRectF bodyRect = mainBody->boundingRect();
@@ -55,13 +56,13 @@ qreal createPortItems(std::vector<JGraphicsPortItem*>& itemsVec, const JTaskIoDe
 }
 }; // namespace
 
-JGraphicsTaskItem::JGraphicsTaskItem(JTask* task, QGraphicsItem* parent)
+JGraphicsTaskItem::JGraphicsTaskItem(JTask* const task, QGraphicsItem* parent)
     : QGraphicsRectItem(parent), _task(task)
 {
-    setBrush(Qt::white);
     setFlag(QGraphicsItem::ItemIsMovable, true);
     setFlag(QGraphicsItem::ItemIsSelectable, true);
     setFlag(QGraphicsItem::ItemSendsScenePositionChanges, true);
+    setBrush(Qt::white);
 
     setRect(0, 0, 150, 80);
     createTextAndResize(task->desc(), this);
@@ -80,10 +81,9 @@ void JGraphicsTaskItem::createPortItemsAndResize()
 }
 
 JGraphicsPortItem::JGraphicsPortItem(const QString& name, PortType type, QGraphicsItem* parent)
-    : QGraphicsRectItem(parent), _name(name), _type(type)
+    : QGraphicsRectItem(parent), _name(name), _portType(type)
 {
     setBrush(Qt::white);
-    setFlag(QGraphicsItem::ItemIsSelectable, true);
     setFlag(QGraphicsItem::ItemSendsScenePositionChanges, true);
 
     setRect(0, 0, 40, 20);
@@ -104,38 +104,58 @@ QVariant JGraphicsPortItem::itemChange(GraphicsItemChange change, const QVariant
 {
     if (change == ItemScenePositionHasChanged) {
         for (auto* const flow : _incomingFlows) {
-            flow->adjust();
+            flow->adjustShape();
         }
         for (auto* const flow : _outgoingFlows) {
-            flow->adjust();
+            flow->adjustShape();
         }
     }
     return QGraphicsItem::itemChange(change, value);
 }
 
-JGraphicsFlowItem::JGraphicsFlowItem(JGraphicsPortItem* start, JGraphicsPortItem* end,
+JGraphicsFlowItem::JGraphicsFlowItem(JGraphicsPortItem* const from, JGraphicsPortItem* const to,
                                      QGraphicsItem* parent)
-    : QGraphicsPathItem(parent), _start(start), _end(end)
+    : QGraphicsPathItem(parent), _from(from), _to(to)
 {
     setFlag(QGraphicsItem::ItemIsSelectable, true);
-
     setZValue(-1);
-    adjust();
+
+    from->outgoingFlows().push_back(this);
+    to->incomingFlows().push_back(this);
+    adjustShape();
 }
 
-void JGraphicsFlowItem::adjust()
+void JGraphicsFlowItem::adjustShape()
 {
-    if (!_start || !_end)
+    if (!_from || !_to)
         return;
 
-    const QPointF start = mapFromItem(_start, _start->bottomEdgeCenter());
-    const QPointF end = mapFromItem(_end, _end->topEdgeCenter());
-    const qreal dx = end.x() - start.x();
+    const QPointF start = mapFromItem(_from, _from->bottomEdgeCenter());
+    const QPointF end = mapFromItem(_to, _to->topEdgeCenter());
+    setPath(genBezierCurvePath(start, end));
+}
 
+QPainterPath genBezierCurvePath(const QPointF& start, const QPointF& end)
+{
+    const qreal dx = end.x() - start.x();
     QPainterPath path;
     path.moveTo(start);
     QPointF ctrl1(start.x() + dx * 0.5, start.y());
     QPointF ctrl2(end.x() - dx * 0.5, end.y());
     path.cubicTo(ctrl1, ctrl2, end);
-    setPath(path);
+    return path;
+}
+
+bool isConnectable(const JGraphicsPortItem* const port1, const JGraphicsPortItem* const port2)
+{
+    if (!port1 || !port2)
+        return false;
+
+    if (port1 == port2)
+        return false;
+
+    if (port1->portType() == port2->portType())
+        return false;
+
+    return port1->name() == port2->name();
 }
