@@ -1,3 +1,3 @@
 #include "JObject.h"
 
-JObject::JObject(QGraphicsItem* parent) : QGraphicsItem(parent) {}
+JObject::JObject(QGraphicsItem* parent) : QGraphicsObject(parent) {}

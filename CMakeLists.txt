@@ -12,12 +12,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 
-set(PROJECT_SOURCES
-        main.cpp
-        MainWindow.cpp
-        MainWindow.h
-        MainWindow.ui
-)
+file(GLOB PROJECT_SOURCES *.h *.cpp *.ui)
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(J-1
@@ -38,24 +33,13 @@ else()
     else()
         add_executable(J-1
             ${PROJECT_SOURCES}
-            JGraphicsView.h JGraphicsView.cpp
-            JGraphicsScene.h JGraphicsScene.cpp
-            JTaskGallary.h JTaskGallary.cpp
-
-
-            JTask.h JTask.cpp
-            macros.h
-            graphics_items.h graphics_items.cpp
-            JTaskIoDesc.h JTaskIoDesc.cpp
-            enums.h
-            JObject.h JObject.cpp
-
-
         )
     endif()
 endif()
 
 target_link_libraries(J-1 PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+
+include_directories(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an

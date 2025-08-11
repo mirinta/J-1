@@ -1,7 +1,9 @@
 #pragma once
 
-class JObject
+#include <QGraphicsObject>
+
+class JObject : public QGraphicsObject
 {
 public:
-    JObject();
+    explicit JObject(QGraphicsItem* parent = nullptr);
 };
